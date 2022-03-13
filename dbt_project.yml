@@ -33,7 +33,11 @@ models:
     mart:
       tags:
         - 'mart'
-      materialized: view  
+      materialized: view
+    pit:
+      tags:
+        - 'pit'
+      materialized: pit_incremental
     raw_vault:
       tags:
         - 'raw_vault'
