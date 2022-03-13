@@ -30,6 +30,10 @@ models:
       tags:
         - 'stage'
       materialized: view
+    mart:
+      tags:
+        - 'mart'
+      materialized: view  
     raw_vault:
       tags:
         - 'raw_vault'
