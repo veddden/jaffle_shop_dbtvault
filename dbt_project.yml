@@ -37,7 +37,7 @@ models:
     pit:
       tags:
         - 'pit'
-      materialized: pit_incremental
+      materialized: incremental
     raw_vault:
       tags:
         - 'raw_vault'

@@ -1,38 +1,36 @@
+with all_history as (
+  select
+    hc.customer_pk,
+    scd.first_name,
+    scd.last_name,
+    scd.email,
+    scdc.age,
+    scdc.country,
+    scd.effective_from as scd_effective_from,
+    coalesce (lead(scd.effective_from) over (partition by hc.customer_pk order by scd.effective_from), '9999-12-31') as scd_effective_to,
+    scdc.effective_from as scdc_effective_from,
+    coalesce (lead(scdc.effective_from) over (partition by hc.customer_pk order by scdc.effective_from), '9999-12-31') as scdc_effective_to
+  from dbt.hub_customer hc
+    left join dbt.sat_customer_details scd on scd.customer_pk = hc.customer_pk
+    left join dbt.sat_customer_details_crm scdc on scdc.customer_pk = hc.customer_pk
+  where hc.customer_pk in ('6974ce5ac660610b44d9b9fed0ff9548')
+)
 
-{{ config(enabled=True, materialized='pit_incremental') }}
+select
+  customer_pk,
+  first_name,
+  last_name,
+  email,
+  age,
+  country
+  --effective_from,
+  --effective_to
+from all_history
+where 1=1
+  and current_timestamp between scd_effective_from and scd_effective_to
+  and current_timestamp between scdc_effective_from and scdc_effective_to
+  and customer_pk in ('6974ce5ac660610b44d9b9fed0ff9548');
 
-{%- set yaml_metadata -%}
-source_model: hub_customer
-src_pk: CUSTOMER_HK
-as_of_dates_table: AS_OF_DATE
-satellites: 
-  SAT_CUSTOMER_DETAILS:
-    pk:
-      PK: CUSTOMER_HK
-    ldts:
-      LDTS: LOAD_DATETIME
-  SAT_CUSTOMER_LOGIN:
-    pk:
-      PK: CUSTOMER_HK
-    ldts:
-      LDTS: LOAD_DATETIME
-stage_tables: 
-  STG_CUSTOMER_DETAILS: LOAD_DATETIME
-  STG_CUSTOMER_LOGIN: LOAD_DATETIME    
-src_ldts: LOAD_DATETIME
-{%- endset -%}
+select current_timestamp;
 
-{% set metadata_dict = fromyaml(yaml_metadata) %}
-
-{% set source_model = metadata_dict['source_model'] %}
-{% set src_pk = metadata_dict['src_pk'] %}
-{% set as_of_dates_table = metadata_dict['as_of_dates_table'] %}
-{% set satellites = metadata_dict['satellites'] %}
-{% set stage_tables = metadata_dict['stage_tables'] %}
-{% set src_ldts = metadata_dict['src_ldts'] %}
-
-{{ dbtvault.pit(source_model=source_model, src_pk=src_pk,
-                as_of_dates_table=as_of_dates_table,
-                satellites=satellites,
-                stage_tables=stage_tables,
-                src_ldts=src_ldts) }}
+--'2022-03-28 21:44:05'
